@@ -4,6 +4,10 @@
 
 [oxfmt](https://github.com/oxc-project/oxc) plugin for the [asdf version manager](https://asdf-vm.com).
 
+
+VERSION NUMBERS DON'T MATCH. Because oxc ship `oxlint` as the primary package and `oxfmt` secondary, and everything is keyed off of `oxlint`'s version. Which brilliantly doesn't match `oxfmt`.
+See https://github.com/oxc-project/oxc/releases?q=apps_v1&expanded=true for how that works. I don't have a great fix.
+
 </div>
 
 # Contents
