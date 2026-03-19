@@ -58,7 +58,8 @@ install_version() {
 
 	(
 		mkdir -p "$install_path"
-		cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
+		cp "${ASDF_DOWNLOAD_PATH}/$(construct_filename)" "$install_path/oxfmt"
+		chmod +x "$install_path/oxfmt"
 
 		# TODO: Assert oxfmt executable exists.
 		local tool_cmd
@@ -89,29 +90,33 @@ github_macos_version() {
   return 1
 }
 
+construct_filename() {
+	uname_s="$(uname -s)"
+	uname_m="$(uname -m)"
+
+	case "$uname_s" in
+	  Darwin) os="apple-darwin" ;;
+	  Linux) os="unknown-linux-gnu" ;;
+	  *) fail "OS not supported: $uname_s" ;;
+	esac
+
+	case "$uname_m" in
+	  x86_64) arch="x86_64" ;;
+	  aarch64) arch="aarch64" ;;
+	  armv8l) arch="arm64" ;;
+	  arm64) arch="aarch64" ;;
+	  *) fail "Architecture not supported: $uname_m" ;;
+	esac
+
+	echo "oxfmt-${arch}-${os}"
+}
+
 download_release() {
   local version filename uname_s uname_m os arch url actualfilename
   version="$1"
   filename="$2"
 
-  uname_s="$(uname -s)"
-  uname_m="$(uname -m)"
-
-  case "$uname_s" in
-    Darwin) os="apple-darwin" ;;
-    Linux) os="unknown-linux-gnu" ;;
-    *) fail "OS not supported: $uname_s" ;;
-  esac
-
-  case "$uname_m" in
-    x86_64) arch="x86_64" ;;
-    aarch64) arch="aarch64" ;;
-    armv8l) arch="arm64" ;;
-    arm64) arch="aarch64" ;;
-    *) fail "Architecture not supported: $uname_m" ;;
-  esac
-
-  actualfilename="oxfmt-${arch}-${os}"
+  actualfilename="$(construct_filename)"
   tag="apps_v${version}"
 
   # https://github.com/oxc-project/oxc/releases/download/apps_v1.56.0/oxfmt-aarch64-apple-darwin.tar.gz
