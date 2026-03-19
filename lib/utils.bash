@@ -36,17 +36,6 @@ list_all_versions() {
 	list_github_tags
 }
 
-# download_release() {
-# 	local version filename url
-# 	version="$1"
-# 	filename="$2"
-
-# 	url="$GH_REPO/archive/v${version}.tar.gz"
-
-# 	echo "* Downloading $TOOL_NAME release $version..."
-# 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
-# }
-
 install_version() {
 	local install_type="$1"
 	local version="$2"
@@ -73,81 +62,40 @@ install_version() {
 	)
 }
 
-
-github_macos_version() {
-  local version
-  version="$1"
-  local major minor patch
-  IFS='.' read -r -a array <<< "$version"
-  major=${array[0]}
-  minor=${array[1]}
-  patch=${array[2]}
-
-  if (( major >= 3 || (major == 2 && minor >= 13) )) ; then
-    return
-  fi
-
-  return 1
-}
-
 construct_filename() {
-	uname_s="$(uname -s)"
-	uname_m="$(uname -m)"
+  local uname_s uname_m os arch
+  uname_s="$(uname -s)"
+  uname_m="$(uname -m)"
 
-	case "$uname_s" in
-	  Darwin) os="apple-darwin" ;;
-	  Linux) os="unknown-linux-gnu" ;;
-	  *) fail "OS not supported: $uname_s" ;;
-	esac
+  case "$uname_s" in
+    Darwin) os="apple-darwin" ;;
+    Linux) os="unknown-linux-gnu" ;;
+    *) fail "OS not supported: $uname_s" ;;
+  esac
 
-	case "$uname_m" in
-	  x86_64) arch="x86_64" ;;
-	  aarch64) arch="aarch64" ;;
-	  armv8l) arch="arm64" ;;
-	  arm64) arch="aarch64" ;;
-	  *) fail "Architecture not supported: $uname_m" ;;
-	esac
+  case "$uname_m" in
+    x86_64) arch="x86_64" ;;
+    aarch64) arch="aarch64" ;;
+    armv8l) arch="arm64" ;;
+    arm64) arch="aarch64" ;;
+    *) fail "Architecture not supported: $uname_m" ;;
+  esac
 
-	echo "oxfmt-${arch}-${os}"
+  echo "oxfmt-${arch}-${os}"
 }
 
 download_release() {
-  local version filename uname_s uname_m os arch url actualfilename
+  local version filename url actualfilename tag
   version="$1"
   filename="$2"
 
   actualfilename="$(construct_filename)"
   tag="apps_v${version}"
 
-  # https://github.com/oxc-project/oxc/releases/download/apps_v1.56.0/oxfmt-aarch64-apple-darwin.tar.gz
+  # map it to:
   # https://github.com/oxc-project/oxc/releases/download/apps_v1.56.0/oxfmt-arm64-apple-darwin.tar.gz
   url="$GH_REPO/releases/download/${tag}/${actualfilename}.tar.gz"
 
   echo "* Downloading $TOOL_NAME release $version..."
   curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
 }
-
-# install_version() {
-#   local install_type="$1"
-#   local version="$2"
-#   local install_path="${3%/bin}/bin"
-
-#   if [ "$install_type" != "version" ]; then
-#     fail "asdf-$TOOL_NAME supports release installs only"
-#   fi
-
-#   (
-#     mkdir -p "$install_path"
-#     cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
-
-#     # Asert hadolint executable exists.
-#     local tool_cmd
-#     tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
-#     test -x "$install_path/$tool_cmd" || fail "Expected $install_path/$tool_cmd to be executable."
-
-#     echo "$TOOL_NAME $version installation was successful!"
-#   ) || (
-#     rm -rf "$install_path"
-#     fail "An error ocurred while installing $TOOL_NAME $version."
-#   )
-# }
